@@ -79,6 +79,13 @@ u64 HID_GetState(void)
     if (physical & BUTTON_R1)
         ret |= BUTTON_RIGHT;
 
+    // L + A = Y (COPY)
+    // Remove A and L while the combo is held so GodMode9 only sees Y
+    if ((physical & BUTTON_L1) && (physical & BUTTON_A)) {
+        ret &= ~(BUTTON_A | BUTTON_L1);
+        ret |= BUTTON_Y;
+    }
+
     if (codec.ts_x <= 0xFFF)
         ret |= BUTTON_TOUCH;
 
