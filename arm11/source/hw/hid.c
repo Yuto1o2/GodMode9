@@ -47,19 +47,42 @@ static u32 HID_ConvertCPAD(s16 cpad_x, s16 cpad_y)
 
 u64 HID_GetState(void)
 {
-	CODEC_Input codec;
-	u64 ret = 0;
+    CODEC_Input codec;
+    u64 ret = 0;
 
-	CODEC_Get(&codec);
+    CODEC_Get(&codec);
 
-	ret = REG_HID | mcuGetSpecialHID();
-	if (!(ret & BUTTON_ARROW))
-		ret |= HID_ConvertCPAD(codec.cpad_x, codec.cpad_y);
+    ret = REG_HID | mcuGetSpecialHID();
 
-	if (codec.ts_x <= 0xFFF)
-		ret |= BUTTON_TOUCH;
+    // Rescue controls for broken D-Pad / Circle Pad
+    u64 physical = ret;
 
-	ret |= (((u64)codec.ts_x << 16) | (u64)codec.ts_y) << 32;
+    // Ignore physical D-Pad completely
+    ret &= ~BUTTON_ARROW;
 
-	return ret;
+    // These physical buttons become our new directions
+    ret &= ~(BUTTON_X | BUTTON_Y | BUTTON_SELECT | BUTTON_R1);
+
+    // X = UP
+    if (physical & BUTTON_X)
+        ret |= BUTTON_UP;
+
+    // SELECT = DOWN
+    if (physical & BUTTON_SELECT)
+        ret |= BUTTON_DOWN;
+
+    // Y = LEFT
+    if (physical & BUTTON_Y)
+        ret |= BUTTON_LEFT;
+
+    // R = RIGHT
+    if (physical & BUTTON_R1)
+        ret |= BUTTON_RIGHT;
+
+    if (codec.ts_x <= 0xFFF)
+        ret |= BUTTON_TOUCH;
+
+    ret |= (((u64)codec.ts_x << 16) | (u64)codec.ts_y) << 32;
+
+    return ret;
 }
