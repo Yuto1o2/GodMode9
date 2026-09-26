@@ -54,7 +54,7 @@ u64 HID_GetState(void)
 
     ret = REG_HID | mcuGetSpecialHID();
 
-    // Rescue controls for broken D-Pad / Circle Pad
+    // Rescue controls for broken D-Pad and Circle Pad
     u64 physical = ret;
 
     // Ignore physical D-Pad completely
